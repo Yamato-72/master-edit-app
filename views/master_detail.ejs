@@ -129,6 +129,19 @@ function isValid(v) {
   return v !== null && v !== undefined && v !== '' && v !== 'NULL';
 }
 
+function renderValue(key, value) {
+  // TF系（remote_controller_attachTF など）
+  if (/_TF$/.test(key)) {
+    if (value === 1 || value === "1" || value === true) return "あり";
+    if (value === 0 || value === "0" || value === false) return "なし";
+    return "";
+  }
+
+  // is_active はバッジ表示側で処理するのでここでは素通し
+  return value;
+}
+
+
 // 重要項目（必要に応じて追加/削除OK）
 const IMPORTANT_KEYS = ["id","PN","PN2","is_active","inch","type","suplier","supplier"];
 
@@ -173,7 +186,7 @@ const otherEntries = entries.filter(([k]) => !IMPORTANT_KEYS.includes(k));
 
 <details class="card" <%= otherEntries.length ? "" : "open" %>>
   <summary style="cursor:pointer; font-weight:600; padding:12px;">
-    その他の詳細スペック（<%= otherEntries.length %>）
+    その他の詳細スペック
   </summary>
 
   <table class="table">
@@ -181,7 +194,7 @@ const otherEntries = entries.filter(([k]) => !IMPORTANT_KEYS.includes(k));
       <% otherEntries.forEach(([key, value]) => { %>
         <tr>
           <th><%= labelOf(key) %></th>
-          <td class="value"><%= value %></td>
+          <td class="value"><%= renderValue(key, value) %></td>
         </tr>
       <% }); %>
 
@@ -194,27 +207,5 @@ const otherEntries = entries.filter(([k]) => !IMPORTANT_KEYS.includes(k));
     </tbody>
   </table>
 </details>
-
-
-<details class="card">
-  <summary style="cursor:pointer; font-weight:600; padding:12px;">
-    その他の詳細スペック
-  </summary>
-
-  <table class="table">
-    <tbody>
-      <% Object.entries(row).forEach(([key, value]) => {
-           if (IMPORTANT_KEYS.includes(key)) return;
-           if (value === null || value === "" || value === "NULL") return;
-      %>
-        <tr>
-          <th class="mono"><%= key %></th>
-          <td class="value"><%= value %></td>
-        </tr>
-      <% }); %>
-    </tbody>
-  </table>
-</details>
-
 </body>
 </html>
