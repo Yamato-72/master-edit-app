@@ -147,6 +147,67 @@ app.get("/masters/register", (req, res) => {
   res.render("master_register");
 });
 
+const multer = require("multer");
+const { parse } = require("csv-parse");
+const fs = require("fs");
+
+const upload = multer({ dest: "tmp/" });
+
+// GET（画面）
+app.get("/masters/upload", (req, res) => {
+  res.render("master_upload", { table: req.query.table || "" });
+});
+
+// POST（CSV受け取り）
+app.post("/masters/upload", upload.single("csv"), async (req, res) => {
+  let filePath;
+
+  try {
+    if (!req.file) {
+      return res.status(400).send("CSVファイルがありません");
+    }
+
+    filePath = req.file.path;
+
+    // ✅ table をホワイトリストで検証
+    const safeTable = getSafeTable(req.body.table);
+    if (!safeTable) {
+      fs.unlinkSync(filePath);
+      return res.status(400).send("不正なマスタ指定です");
+    }
+
+    // ✅ CSV読み込み
+    const records = await new Promise((resolve, reject) => {
+      const rows = [];
+      fs.createReadStream(filePath)
+        .pipe(parse({
+          columns: true,
+          skip_empty_lines: true,
+          trim: true
+        }))
+        .on("data", (row) => rows.push(row))
+        .on("end", () => resolve(rows))
+        .on("error", reject);
+    });
+
+    // 一旦ファイル削除
+    fs.unlinkSync(filePath);
+
+    // ✅ まずは確認用レスポンス
+    res.render("master_upload_result", {
+      table: safeTable,
+      count: records.length,
+      preview: records.slice(0, 5) // 先頭5行だけ確認
+    });
+
+  } catch (err) {
+    console.error(err);
+    if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    res.status(500).send("CSV取込に失敗しました");
+  }
+});
+
+
 
 // 共通API：is_active トグル
 app.post("/toggle-active", async (req, res) => {

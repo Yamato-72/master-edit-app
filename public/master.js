@@ -110,3 +110,41 @@ document.addEventListener("DOMContentLoaded", () => {
     if (a) close();
   });
 })();
+
+// ===== 開いてるタブのテーブルを FAB リンクに反映 =====
+(() => {
+  const formLink = document.getElementById("fabToForm");
+  const csvLink  = document.getElementById("fabToCsv");
+
+  if (!formLink || !csvLink) return;
+
+  const getActiveTable = () => {
+    const activeTab = document.querySelector(".tabs .tab.active");
+    return activeTab?.dataset?.table || "";
+  };
+
+  const withTable = (baseUrl, table) => {
+    if (!table) return baseUrl;
+    const url = new URL(baseUrl, window.location.origin);
+    url.searchParams.set("table", table);
+    return url.pathname + url.search; // ドメイン抜きで返す
+  };
+
+  const updateFabLinks = () => {
+    const table = getActiveTable();
+    formLink.setAttribute("href", withTable("/masters/register", table));
+    csvLink.setAttribute("href", withTable("/masters/upload", table));
+  };
+
+  // 初期表示
+  updateFabLinks();
+
+  // タブ切り替え時にも更新（既存のタブ処理を邪魔しない）
+  document.getElementById("tabs")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab");
+    if (!btn) return;
+
+    // 既存処理が active を付け替えた後に読むために 0ms 遅延
+    setTimeout(updateFabLinks, 0);
+  });
+})();

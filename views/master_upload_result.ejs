@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CSVアップロード結果</title>
+  <link rel="stylesheet" href="/public/styles.css">
+  <style>
+    .result-wrap { max-width: 980px; margin: 0 auto; padding: 12px; }
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:14px; }
+    .meta { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; color:#374151; font-size:13px; }
+    .pill { display:inline-block; padding:3px 8px; border:1px solid #e5e7eb; border-radius:999px; background:#f9fafb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .table { width:100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    .table th, .table td { border-bottom:1px solid #e5e7eb; padding:6px 8px; vertical-align: top; }
+    .table th { background:#f9fafb; font-weight:700; text-align:left; white-space:nowrap; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px; }
+    .note { margin-top: 10px; color:#6b7280; font-size: 12px; line-height: 1.6; }
+    .ok { color:#065f46; font-weight:700; }
+    .warn { color:#92400e; font-weight:700; }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <h1>CSVアップロード結果</h1>
+    <p class="sub">読み取り結果の確認</p>
+  </header>
+
+  <main class="result-wrap">
+    <div class="card">
+      <div class="meta">
+        <div>対象テーブル：<span class="pill"><%= table %></span></div>
+        <div>読み取り行数：<span class="pill"><%= count %></span></div>
+        <div>プレビュー：先頭 <span class="pill"><%= (preview || []).length %></span> 行</div>
+      </div>
+
+      <% if (!count || count === 0) { %>
+        <p class="warn" style="margin-top:12px;">CSVにデータ行がありません（ヘッダーのみ/空ファイルの可能性）</p>
+      <% } else { %>
+        <p class="ok" style="margin-top:12px;">CSVを読み取りました。内容を確認してください。</p>
+
+        <% 
+          const rows = preview || [];
+          const headers = rows.length ? Object.keys(rows[0]) : [];
+        %>
+
+        <% if (headers.length) { %>
+          <div style="overflow:auto;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <% headers.forEach(h => { %>
+                    <th><%= h %></th>
+                  <% }) %>
+                </tr>
+              </thead>
+              <tbody>
+                <% rows.forEach(r => { %>
+                  <tr>
+                    <% headers.forEach(h => { %>
+                      <td><%= r[h] %></td>
+                    <% }) %>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <p style="margin-top:10px; color:#6b7280;">プレビューできるデータがありません。</p>
+        <% } %>
+      <% } %>
+
+      <div class="actions">
+        <a class="btn" href="/masters/upload?table=<%= encodeURIComponent(table) %>">もう一度アップロード</a>
+        <a class="btn ghost" href="/masters">一覧へ戻る</a>
+      </div>
+
+      <div class="note">
+        ※ ここではまだDBに登録していません（確認画面）。<br/>
+        ※ 次のステップで「必須列チェック」「型変換」「重複処理」を入れてからINSERTするのがおすすめです。
+      </div>
+    </div>
+  </main>
+</body>
+</html>
