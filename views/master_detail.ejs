@@ -88,29 +88,113 @@
       </div>
     </div>
 
-    <div class="card" style="margin-bottom:16px;">
+    <%
+// ===== 日本語ラベル =====
+const jpMap = {
+  "id": "ID",
+  "is_active": "有効",
+  "PN": "型番（旧）",
+  "PN2": "型番",
+  "type": "タイプ",
+  "suplier": "仕入先",          // ←DBが supplier なら supplier に直す
+  "supplier": "仕入先",
+  "inch": "インチ数",
+  "mount_type": "取付方式",
+  "orientation": "設置向き",
+  "panel_brand": "パネルメーカー",
+  "display_area": "表示領域",
+  "resolution": "解像度",
+  "brightness": "輝度",
+  "contrast_ratio": "コントラスト比",
+  "response_time": "応答速度",
+  "refresh_rate": "リフレッシュレート",
+  "viewing_angle": "視野角",
+  "backlight_type": "バックライト種類",
+  "life_time": "寿命",
+  "power_consumption": "消費電力",
+  "voltage": "電圧",
+  "tempurature_operating": "動作温度",
+  "humidity_operationg": "動作湿度",
+  "warranty_term": "保証期間",
+  "remote_controller_attachTF": "リモコン付属",
+  "key_attachTF": "鍵付属",
+  "power_cable_attachTF": "電源ケーブル付属",
+  "FC": "Flicker Compensation",
+  "brightness_sensor": "明るさセンサー",
+  "IP": "防塵防水等級",
+  "color": "筐体色"
+};
+
+function isValid(v) {
+  return v !== null && v !== undefined && v !== '' && v !== 'NULL';
+}
+
+// 重要項目（必要に応じて追加/削除OK）
+const IMPORTANT_KEYS = ["id","PN","PN2","is_active","inch","type","suplier","supplier"];
+
+// row から表示対象だけ抽出（NULL系は落とす）
+const entries = Object.entries(row || {}).filter(([k, v]) => isValid(v));
+
+// key → label
+const labelOf = (key) => jpMap[key] || `${key}（未翻訳）`;
+
+// 重要 / その他 に分ける
+const importantEntries = entries.filter(([k]) => IMPORTANT_KEYS.includes(k));
+const otherEntries = entries.filter(([k]) => !IMPORTANT_KEYS.includes(k));
+%>
+
+<div class="card" style="margin-bottom:16px;">
   <table class="table">
     <tbody>
-      <% const IMPORTANT_KEYS = ["id","PN","PN2","is_active","inch","type"]; %>
-
-      <% IMPORTANT_KEYS.forEach(key => { 
-           if (row[key] === undefined) return; %>
+      <% importantEntries.forEach(([key, value]) => { %>
         <tr>
-          <th class="mono"><%= key %></th>
+          <th><%= labelOf(key) %></th>
           <td class="value">
             <% if (key === "is_active") { %>
-              <span class="badge <%= Number(row[key]) === 1 ? 'on' : 'off' %>">
-                <%= Number(row[key]) === 1 ? "ON" : "OFF" %>
+              <span class="badge <%= Number(value) === 1 ? 'on' : 'off' %>">
+                <%= Number(value) === 1 ? "ON" : "OFF" %>
               </span>
             <% } else { %>
-              <%= row[key] %>
+              <%= value %>
             <% } %>
           </td>
         </tr>
       <% }); %>
+
+      <% if (importantEntries.length === 0) { %>
+        <tr>
+          <th>表示</th>
+          <td class="value">重要項目が見つかりませんでした。</td>
+        </tr>
+      <% } %>
     </tbody>
   </table>
 </div>
+
+<details class="card" <%= otherEntries.length ? "" : "open" %>>
+  <summary style="cursor:pointer; font-weight:600; padding:12px;">
+    その他の詳細スペック（<%= otherEntries.length %>）
+  </summary>
+
+  <table class="table">
+    <tbody>
+      <% otherEntries.forEach(([key, value]) => { %>
+        <tr>
+          <th><%= labelOf(key) %></th>
+          <td class="value"><%= value %></td>
+        </tr>
+      <% }); %>
+
+      <% if (otherEntries.length === 0) { %>
+        <tr>
+          <th>詳細</th>
+          <td class="value">追加のスペックはありません。</td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</details>
+
 
 <details class="card">
   <summary style="cursor:pointer; font-weight:600; padding:12px;">
