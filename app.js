@@ -142,6 +142,12 @@ app.get("/masters/:table/:id", async (req, res) => {
   }
 });
 
+// 新規登録ページ
+app.get("/masters/register", (req, res) => {
+  res.render("master_register");
+});
+
+
 // 共通API：is_active トグル
 app.post("/toggle-active", async (req, res) => {
   const { table, id } = req.body;

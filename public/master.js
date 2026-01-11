@@ -67,3 +67,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// ===== FAB 吹き出しメニュー =====
+(() => {
+  const fabBtn = document.getElementById("fabBtn");
+  const fabMenu = document.getElementById("fabMenu");
+  const fabBackdrop = document.getElementById("fabBackdrop");
+
+  if (!fabBtn || !fabMenu || !fabBackdrop) return;
+
+  const open = () => {
+    fabMenu.classList.remove("hidden");
+    fabBackdrop.classList.remove("hidden");
+    fabBtn.classList.add("is-open");
+    fabBtn.setAttribute("aria-expanded", "true");
+  };
+
+  const close = () => {
+    fabMenu.classList.add("hidden");
+    fabBackdrop.classList.add("hidden");
+    fabBtn.classList.remove("is-open");
+    fabBtn.setAttribute("aria-expanded", "false");
+  };
+
+  const isOpen = () => !fabMenu.classList.contains("hidden");
+
+  fabBtn.addEventListener("click", () => {
+    isOpen() ? close() : open();
+  });
+
+  // 背景クリックで閉じる
+  fabBackdrop.addEventListener("click", close);
+
+  // Escで閉じる
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && isOpen()) close();
+  });
+
+  // メニュークリック時は閉じる（遷移前提）
+  fabMenu.addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (a) close();
+  });
+})();

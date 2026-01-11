@@ -103,3 +103,121 @@ body {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ===== フローティング追加ボタン ===== */
+/* ===== 共通 ===== */
+.hidden { display: none !important; }
+
+/* ===== FAB + 吹き出しメニュー ===== */
+
+/* 右下の＋ボタン */
+.fab {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  z-index: 3000;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.fab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+
+.fab-plus {
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 700;
+  transform: translateY(-1px);
+  transition: transform .18s ease;
+}
+
+/* 開いているときに＋を×っぽく回す */
+.fab.is-open .fab-plus {
+  transform: rotate(45deg) translateY(-1px);
+}
+
+/* 背景クリック用（透明） */
+.fab-backdrop {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 2500;
+}
+
+/* 吹き出し本体（FABの左上） */
+.fab-menu {
+  position: fixed;
+  right: 22px;
+  bottom: 88px; /* FABより上 */
+  z-index: 3001;
+  width: 240px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.22);
+  padding: 8px;
+  transform-origin: right bottom;
+  animation: fabPop .16s ease-out;
+}
+
+/* 吹き出しの三角 */
+.fab-menu::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  bottom: -8px;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  transform: rotate(45deg);
+}
+
+/* メニュー項目 */
+.fab-item {
+  display: block;
+  padding: 10px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #111827;
+  transition: background .12s ease;
+}
+
+.fab-item:hover {
+  background: #f3f4f6;
+}
+
+.fab-item-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.fab-item-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 表示アニメーション */
+@keyframes fabPop {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+
