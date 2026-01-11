@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "csv-parse": "^6.1.0",
+    "csv-stringify": "^6.6.0",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
