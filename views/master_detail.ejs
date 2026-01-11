@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>マスター詳細</title>
+  <link rel="stylesheet" href="/public/styles.css">
+
+  <style>
+    /* ===== 高密度・業務用 ===== */
+
+    .detail-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 10px;
+    }
+
+    .card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;     /* 丸み最小 */
+    box-shadow: none;       /* 影なし */
+    }
+
+    /* テーブル全体 */
+    .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;        /* 少し小さく */
+    }
+
+    /* 行 */
+    .table th,
+    .table td {
+    padding: 4px 8px;       /* ← ここが一番効く */
+    line-height: 1.4;       /* 文字の約2〜3倍 */
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+    }
+
+    /* キー側 */
+    .table th {
+    width: 180px;
+    background: #f9fafb;
+    font-weight: 600;
+    }
+
+    /* 値側 */
+    .value {
+    white-space: pre-wrap;
+    word-break: break-word;
+    }
+
+    /* バッジも小さく */
+    .badge {
+    padding: 1px 6px;
+    font-size: 11px;
+    line-height: 1.2;
+    }
+
+    /* 上部ヘッダも詰める */
+    .detail-title {
+    font-size: 18px;
+    margin-bottom: 4px;
+    }
+
+    .detail-sub {
+    font-size: 12px;
+    margin-bottom: 8px;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="detail-wrap">
+    <div class="detail-head">
+      <div>
+        <h1 class="detail-title">マスター詳細</h1>
+        <p class="detail-sub">
+          <span class="pill mono"><%= table %></span>
+          <span class="pill mono">id=<%= row.id %></span>
+        </p>
+      </div>
+
+      <div class="detail-actions">
+        <a class="btn" href="/masters">← 一覧に戻る</a>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+  <table class="table">
+    <tbody>
+      <% const IMPORTANT_KEYS = ["id","PN","PN2","is_active","inch","type"]; %>
+
+      <% IMPORTANT_KEYS.forEach(key => { 
+           if (row[key] === undefined) return; %>
+        <tr>
+          <th class="mono"><%= key %></th>
+          <td class="value">
+            <% if (key === "is_active") { %>
+              <span class="badge <%= Number(row[key]) === 1 ? 'on' : 'off' %>">
+                <%= Number(row[key]) === 1 ? "ON" : "OFF" %>
+              </span>
+            <% } else { %>
+              <%= row[key] %>
+            <% } %>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<details class="card">
+  <summary style="cursor:pointer; font-weight:600; padding:12px;">
+    その他の詳細スペック
+  </summary>
+
+  <table class="table">
+    <tbody>
+      <% Object.entries(row).forEach(([key, value]) => {
+           if (IMPORTANT_KEYS.includes(key)) return;
+           if (value === null || value === "" || value === "NULL") return;
+      %>
+        <tr>
+          <th class="mono"><%= key %></th>
+          <td class="value"><%= value %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</details>
+
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>マスター管理</title>
+  <link rel="stylesheet" href="/public/styles.css">
+</head>
+<body>
+  <header class="header">
+    <h1>マスター管理</h1>
+    <p class="sub">タブ切替／is_active をワンクリック反転</p>
+  </header>
+
+  <main class="container">
+    <div class="tabs" id="tabs">
+      <% (mastersData || []).forEach((m, idx) => { %>
+        <button class="tab <%= idx === 0 ? 'active' : '' %>" data-target="<%= m.key %>">
+          <%= m.label %>
+        </button>
+      <% }) %>
+    </div>
+
+    <% (mastersData || []).forEach((m, idx) => { %>
+      <section class="panel <%= idx === 0 ? '' : 'hidden' %>" data-panel="<%= m.key %>">
+        <h2><%= m.table %></h2>
+
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th style="width:80px;">ID</th>
+              <th>name</th>
+              <th style="width:90px;">inch</th>
+              <th style="width:220px;">supplier</th>
+              <th style="width:120px;">is_active</th>
+              <th style="width:160px;">操作</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% (m.rows || []).forEach(item => { %>
+              <tr class="<%= item.is_active ? '' : 'inactive-row' %>">
+                <td><%= item.id %></td>
+
+                <td>
+                  <a href="/masters/<%= m.table %>/<%= item.id %>" class="detail-link">
+                    <%= item.label %>
+                  </a>
+                </td>
+
+                <td><%= item.inch ?? '―' %></td>
+                <td><%= item.supplier_name ?? '―' %></td>
+
+                <td>
+                  <span class="badge <%= item.is_active ? 'on' : 'off' %>">
+                    <%= item.is_active ? 'ON' : 'OFF' %>
+                  </span>
+                </td>
+
+                <td>
+                  <button
+                    class="toggle-active-btn"
+                    data-table="<%= m.table %>"
+                    data-id="<%= item.id %>"
+                  >
+                    <%= item.is_active ? '無効にする' : '有効にする' %>
+                  </button>
+                </td>
+              </tr>
+            <% }) %>
+
+            <% if (!m.rows || m.rows.length === 0) { %>
+              <tr>
+                <td colspan="6" style="color:#6b7280; padding:14px;">
+                  データがありません
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </section>
+    <% }) %>
+  </main>
+
+  <script src="/public/master.js"></script>
+</body>
+</html>
