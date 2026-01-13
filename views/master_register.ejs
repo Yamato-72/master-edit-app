@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>マスタ新規登録</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5fa;
+    }
+    h2 {
+      text-align: center;
+      color: navy;
+    }
+    form {
+      width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .form-row {
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .required {
+      color: crimson;
+      font-size: 0.9em;
+      margin-left: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: navy;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>マスタ新規登録（<%= table %>）</h2>
+
+<form method="POST" action="/masters/register?table=<%= table %>">
+
+  <% columns.forEach(col => { %>
+
+    <% 
+      // auto_increment は入力させない
+      if (col.EXTRA && col.EXTRA.includes('auto_increment')) return;
+
+      const isRequired = col.IS_NULLABLE === 'NO' && col.COLUMN_DEFAULT === null;
+      const name = col.COLUMN_NAME;
+      const type = col.DATA_TYPE;
+      const columnType = col.COLUMN_TYPE || '';
+    %>
+
+    <div class="form-row">
+      <label>
+        <%= name %>
+        <% if (isRequired) { %><span class="required">※必須</span><% } %>
+      </label>
+
+      <% /* ===== ENUM ===== */ %>
+      <% if (type === 'enum') { 
+          const enums = columnType
+            .replace(/^enum\(|\)$/g, '')
+            .split(',')
+            .map(v => v.replace(/'/g, ''));
+      %>
+        <select name="<%= name %>" <%= isRequired ? 'required' : '' %>>
+          <option value="">-- 選択 --</option>
+          <% enums.forEach(v => { %>
+            <option value="<%= v %>"><%= v %></option>
+          <% }) %>
+        </select>
+
+      <% /* ===== TEXT ===== */ %>
+      <% } else if (type === 'text') { %>
+        <textarea
+          name="<%= name %>"
+          rows="4"
+          <%= isRequired ? 'required' : '' %>
+        ></textarea>
+
+      <% /* ===== NUMBER ===== */ %>
+      <% } else if (['int','decimal','float','double'].includes(type)) { %>
+        <input
+          type="number"
+          name="<%= name %>"
+          step="<%= col.NUMERIC_SCALE && col.NUMERIC_SCALE > 0 ? 'any' : '1' %>"
+          <%= isRequired ? 'required' : '' %>
+        >
+
+      <% /* ===== DATE ===== */ %>
+      <% } else if (type === 'date') { %>
+        <input
+          type="date"
+          name="<%= name %>"
+          <%= isRequired ? 'required' : '' %>
+        >
+
+      <% } else if (['datetime','timestamp'].includes(type)) { %>
+        <input
+          type="datetime-local"
+          name="<%= name %>"
+          <%= isRequired ? 'required' : '' %>
+        >
+
+      <% /* ===== VARCHAR / OTHER ===== */ %>
+      <% } else { %>
+        <input
+          type="text"
+          name="<%= name %>"
+          maxlength="<%= col.CHARACTER_MAXIMUM_LENGTH || '' %>"
+          <%= isRequired ? 'required' : '' %>
+        >
+      <% } %>
+
+    </div>
+
+  <% }) %>
+
+  <button type="submit">登録する</button>
+</form>
+
+</body>
+</html>

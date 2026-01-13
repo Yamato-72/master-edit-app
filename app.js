@@ -179,9 +179,109 @@ app.get("/masters/:table/:id", async (req, res) => {
 });
 
 // 新規登録ページ
-app.get("/masters/register", (req, res) => {
-  res.render("master_register");
+app.get("/masters/register", async (req, res) => {
+  const table = req.query.table;
+
+  const safeTable = getSafeTable(table);
+  if (!safeTable) {
+    return res.status(400).send("不正なテーブル指定です");
+  }
+
+  try {
+    const [columns] = await pool.query(
+      `
+      SELECT
+        COLUMN_NAME,
+        DATA_TYPE,
+        COLUMN_TYPE,
+        IS_NULLABLE,
+        COLUMN_DEFAULT,
+        CHARACTER_MAXIMUM_LENGTH,
+        NUMERIC_PRECISION,
+        NUMERIC_SCALE,
+        EXTRA
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = ?
+      ORDER BY ORDINAL_POSITION
+      `,
+      [process.env.DB_NAME, safeTable]
+    );
+
+    res.render("master_register", {
+      table: safeTable,
+      columns
+    });
+
+  } catch (err) {
+    console.error("カラム取得エラー:", err);
+    res.status(500).send("カラム情報の取得に失敗しました");
+  }
 });
+
+// 新規登録実行
+app.post("/masters/register", async (req, res) => {
+  const table = req.query.table;
+  const safeTable = getSafeTable(table);
+
+  if (!safeTable) {
+    return res.status(400).send("不正なテーブル指定です");
+  }
+
+  try {
+    // カラム情報を再取得（安全のため）
+    const [columns] = await pool.query(
+      `
+      SELECT COLUMN_NAME, EXTRA
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = ?
+      `,
+      [process.env.DB_NAME, safeTable]
+    );
+
+    const insertColumns = [];
+    const insertValues = [];
+
+    columns.forEach(col => {
+      // auto_increment は除外
+      if (col.EXTRA && col.EXTRA.includes("auto_increment")) return;
+
+      const value = req.body[col.COLUMN_NAME];
+
+      // 未送信 or 空文字 → null
+      if (value === undefined || value === "") {
+        insertColumns.push(col.COLUMN_NAME);
+        insertValues.push(null);
+      } else {
+        insertColumns.push(col.COLUMN_NAME);
+        insertValues.push(value);
+      }
+    });
+
+    const placeholders = insertColumns.map(() => "?").join(",");
+    const sql = `
+      INSERT INTO ${safeTable}
+      (${insertColumns.join(",")})
+      VALUES (${placeholders})
+    `;
+
+    await pool.query(sql, insertValues);
+
+    res.redirect(`/masters?table=${safeTable}`);
+
+  } catch (err) {
+    console.error("登録エラー:", err);
+
+    // よくあるエラーを人間向けに
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(400).send("既に登録されている値があります（重複エラー）");
+    }
+
+    res.status(500).send("登録に失敗しました");
+  }
+});
+
 
 
 // GET（画面）
