@@ -95,7 +95,7 @@ async function getTableColumns(tableName) {
 // ===== helpers =====
 async function fetchMasterList(tableName) {
   // 念のため（MASTERSから呼んでいるので基本不要だが安全）
-  if (!ALLOWED_TABLES.includes(tableName)) {
+  if (!ALLOWED_TABLES.has(tableName)) {
     throw new Error(`Invalid table: ${tableName}`);
   }
 
@@ -152,7 +152,7 @@ app.get("/masters", async (req, res) => {
 app.get("/masters/:table/:id", async (req, res) => {
   const { table, id } = req.params;
 
-  if (!ALLOWED_TABLES.includes(table)) {
+  if (!ALLOWED_TABLES.has(table)) {
     return res.status(400).send("Invalid table");
   }
 
@@ -343,7 +343,7 @@ app.post("/toggle-active", async (req, res) => {
   const { table, id } = req.body;
 
   if (!table || !id) return res.status(400).json({ error: "table と id が必要です" });
-  if (!ALLOWED_TABLES.includes(table)) return res.status(400).json({ error: "Invalid table" });
+  if (!ALLOWED_TABLES.has(table)) return res.status(400).json({ error: "Invalid table" });
 
   const safeId = Number(id);
   if (!Number.isInteger(safeId)) return res.status(400).json({ error: "Invalid id" });
