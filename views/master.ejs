@@ -42,8 +42,13 @@
           </thead>
 
           <tbody>
-            <% (m.rows || []).forEach(item => { %>
-              <tr class="<%= item.is_active ? '' : 'inactive-row' %>">
+            <% (m.rows || []).forEach(item => { 
+                 // is_active が「あるテーブル」だけ ON/OFF 表示
+                 const hasIsActive = (typeof m.hasIsActive !== 'undefined') ? m.hasIsActive : (item.is_active !== null && typeof item.is_active !== 'undefined');
+                 const isActive = (item.is_active === 1 || item.is_active === true);
+                 const isInactiveRow = hasIsActive && !isActive;
+            %>
+              <tr class="<%= isInactiveRow ? 'inactive-row' : '' %>">
                 <td><%= item.id %></td>
 
                 <td>
@@ -56,19 +61,27 @@
                 <td><%= item.supplier_name ?? '―' %></td>
 
                 <td>
-                  <span class="badge <%= item.is_active ? 'on' : 'off' %>">
-                    <%= item.is_active ? 'ON' : 'OFF' %>
-                  </span>
+                  <% if (!hasIsActive) { %>
+                    <span class="badge">―</span>
+                  <% } else { %>
+                    <span class="badge <%= isActive ? 'on' : 'off' %>">
+                      <%= isActive ? 'ON' : 'OFF' %>
+                    </span>
+                  <% } %>
                 </td>
 
                 <td>
-                  <button
-                    class="toggle-active-btn"
-                    data-table="<%= m.table %>"
-                    data-id="<%= item.id %>"
-                  >
-                    <%= item.is_active ? '無効にする' : '有効にする' %>
-                  </button>
+                  <% if (!hasIsActive) { %>
+                    <span style="color:#6b7280;">―</span>
+                  <% } else { %>
+                    <button
+                      class="toggle-active-btn"
+                      data-table="<%= m.table %>"
+                      data-id="<%= item.id %>"
+                    >
+                      <%= isActive ? '無効にする' : '有効にする' %>
+                    </button>
+                  <% } %>
                 </td>
               </tr>
             <% }) %>
@@ -94,6 +107,7 @@
 
   <!-- 吹き出しメニュー -->
   <div class="fab-menu hidden" id="fabMenu" role="menu" aria-label="新規登録メニュー">
+    <!-- ※ 自動化したので table が必須になる。table未指定だと 400 になるので注意 -->
     <a class="fab-item" href="/masters/register" role="menuitem" id="fabToForm">
       <span class="fab-item-title">フォームで登録</span>
       <span class="fab-item-sub">1件ずつ入力</span>

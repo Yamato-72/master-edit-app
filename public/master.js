@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabs = document.querySelectorAll(".tab");
   const panels = document.querySelectorAll(".panel");
 
-  // デバッグ（あとで消してOK）
   console.log("tabs:", tabs.length, "panels:", panels.length);
 
   tabs.forEach((tab) => {
@@ -16,11 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const target = tab.dataset.target;
       const panel = document.querySelector(`.panel[data-panel="${target}"]`);
 
-      if (panel) {
-        panel.classList.remove("hidden");
-      } else {
-        console.warn("panel not found:", target);
-      }
+      if (panel) panel.classList.remove("hidden");
+      else console.warn("panel not found:", target);
     });
   });
 
@@ -31,6 +27,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const table = btn.dataset.table;
     const id = btn.dataset.id;
+
+    const tr = btn.closest("tr");
+    const badge = tr?.querySelector(".badge");
+
+    // ✅ is_active を持たないテーブル対策（念のため）
+    if (!badge || badge.textContent.trim() === "―") {
+      alert("このテーブルは is_active 列がないため切替できません");
+      return;
+    }
 
     btn.disabled = true;
     const prevText = btn.textContent;
@@ -46,11 +51,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       if (!res.ok) {
         alert(data.error || "更新に失敗しました");
+        btn.textContent = prevText;
         return;
       }
 
-      const tr = btn.closest("tr");
-      const badge = tr.querySelector(".badge");
       const isActive = Number(data.is_active) === 1;
 
       tr.classList.toggle("inactive-row", !isActive);
@@ -96,15 +100,12 @@ document.addEventListener("DOMContentLoaded", () => {
     isOpen() ? close() : open();
   });
 
-  // 背景クリックで閉じる
   fabBackdrop.addEventListener("click", close);
 
-  // Escで閉じる
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && isOpen()) close();
   });
 
-  // メニュークリック時は閉じる（遷移前提）
   fabMenu.addEventListener("click", (e) => {
     const a = e.target.closest("a");
     if (a) close();
@@ -114,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ===== 開いてるタブのテーブルを FAB リンクに反映 =====
 (() => {
   const formLink = document.getElementById("fabToForm");
-  const csvLink  = document.getElementById("fabToCsv");
+  const csvLink = document.getElementById("fabToCsv");
 
   if (!formLink || !csvLink) return;
 
@@ -127,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!table) return baseUrl;
     const url = new URL(baseUrl, window.location.origin);
     url.searchParams.set("table", table);
-    return url.pathname + url.search; // ドメイン抜きで返す
+    return url.pathname + url.search;
   };
 
   const updateFabLinks = () => {
@@ -136,15 +137,11 @@ document.addEventListener("DOMContentLoaded", () => {
     csvLink.setAttribute("href", withTable("/masters/upload", table));
   };
 
-  // 初期表示
   updateFabLinks();
 
-  // タブ切り替え時にも更新（既存のタブ処理を邪魔しない）
   document.getElementById("tabs")?.addEventListener("click", (e) => {
     const btn = e.target.closest(".tab");
     if (!btn) return;
-
-    // 既存処理が active を付け替えた後に読むために 0ms 遅延
     setTimeout(updateFabLinks, 0);
   });
 })();
