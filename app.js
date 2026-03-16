@@ -254,9 +254,20 @@ app.get("/masters/register", async (req, res) => {
       [process.env.DB_NAME, safeTable]
     );
 
+    // supplier_master 一覧を取得
+    const [suppliers] = await pool.query(
+      `
+      SELECT id, name
+      FROM supplier_master
+      WHERE is_active = 1
+      ORDER BY name
+      `
+    );
+
     res.render("master_register", {
       table: safeTable,
       columns,
+      suppliers, // ← これを追加
     });
   } catch (err) {
     console.error("カラム取得エラー:", err);

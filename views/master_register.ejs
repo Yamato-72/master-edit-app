@@ -63,14 +63,19 @@
 
   <% columns.forEach(col => { %>
 
-    <% 
-      // auto_increment は入力させない
+    <%
       if (col.EXTRA && col.EXTRA.includes('auto_increment')) return;
 
       const isRequired = col.IS_NULLABLE === 'NO' && col.COLUMN_DEFAULT === null;
       const name = col.COLUMN_NAME;
       const type = col.DATA_TYPE;
       const columnType = col.COLUMN_TYPE || '';
+
+      const isBoolean =
+        type === 'tinyint' &&
+        columnType.toLowerCase() === 'tinyint(1)';
+
+      const isSupplierSelect = name === 'supplier_id';
     %>
 
     <div class="form-row">
@@ -79,8 +84,25 @@
         <% if (isRequired) { %><span class="required">※必須</span><% } %>
       </label>
 
+      <% /* ===== supplier_id ===== */ %>
+      <% if (isSupplierSelect) { %>
+        <select name="<%= name %>" <%= isRequired ? 'required' : '' %>>
+          <option value="">-- 選択 --</option>
+          <% (suppliers || []).forEach(s => { %>
+            <option value="<%= s.id %>"><%= s.name %></option>
+          <% }) %>
+        </select>
+
+      <% /* ===== tinyint(1) → 真偽値プルダウン ===== */ %>
+      <% } else if (isBoolean) { %>
+        <select name="<%= name %>" <%= isRequired ? 'required' : '' %>>
+          <option value="">-- 選択 --</option>
+          <option value="1">1 : はい</option>
+          <option value="0">0 : いいえ</option>
+        </select>
+
       <% /* ===== ENUM ===== */ %>
-      <% if (type === 'enum') { 
+      <% } else if (type === 'enum') {
           const enums = columnType
             .replace(/^enum\(|\)$/g, '')
             .split(',')
@@ -102,11 +124,11 @@
         ></textarea>
 
       <% /* ===== NUMBER ===== */ %>
-      <% } else if (['int','decimal','float','double'].includes(type)) { %>
+      <% } else if (['int','bigint','decimal','float','double','tinyint'].includes(type)) { %>
         <input
           type="number"
           name="<%= name %>"
-          step="<%= col.NUMERIC_SCALE && col.NUMERIC_SCALE > 0 ? 'any' : '1' %>"
+          step="<%= col.NUMERIC_SCALE && Number(col.NUMERIC_SCALE) > 0 ? 'any' : '1' %>"
           <%= isRequired ? 'required' : '' %>
         >
 
